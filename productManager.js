@@ -1,4 +1,4 @@
-//productManager.js
+//productManager.js.
 class ProductManager {
     constructor() {
         this.products = [];

@@ -1,4 +1,4 @@
-// index.js
+// index.js.
 const ProductManager = require('./productManager');
 
 const manager = new ProductManager();
