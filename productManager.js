@@ -1,8 +1,20 @@
 //productManager.js
+const fs = require('fs');
+
 class ProductManager {
     constructor() {
         this.products = [];
         this.id = 0;
+        if (fs.existsSync('products.json')) {
+            const data = fs.readFileSync('products.json', 'utf-8');
+            const products = JSON.parse(data);
+            this.products = products;
+            this.id = this.products.length;
+        }
+    }
+
+    saveProducts() {
+        fs.writeFileSync('products.json', JSON.stringify(this.products));
     }
 
     addProduct(title, description, price, thumbnail, code, stock) {
@@ -25,6 +37,8 @@ class ProductManager {
             code,
             stock
         });
+
+        this.saveProducts();
     }
 
     getProducts() {
@@ -35,8 +49,7 @@ class ProductManager {
         const product = this.products.find(product => product.id === id);
 
         if (!product) {
-            console.error('Producto no encontrado');
-            return;
+            throw new Error('Producto no encontrado');
         }
 
         return product;
@@ -46,24 +59,26 @@ class ProductManager {
         const product = this.products.find(product => product.id === id);
 
         if (!product) {
-            console.error('Producto no encontrado');
-            return;
+            throw new Error('Producto no encontrado');
         }
 
         delete newProductData.id;
 
         Object.assign(product, newProductData);
+
+        this.saveProducts();
     }
 
     deleteProduct(id) {
         const productIndex = this.products.findIndex(product => product.id === id);
 
         if (productIndex === -1) {
-            console.error('Producto no encontrado');
-            return;
+            throw new Error('Producto no encontrado');
         }
 
         this.products.splice(productIndex, 1);
+
+        this.saveProducts();
     }
 }
 
