@@ -3,8 +3,10 @@ const ProductManager = require('./productManager');
 
 const manager = new ProductManager();
 
-for (let i = 0; i < 10; i++) {
-    manager.addProduct(`Producto ${i+1}`, 'Descripción del producto', 100, 'Sin imagen', `abc${i+1}${Math.random().toString(36).substring(2, 15)}`, 10, 'Categoría', ['Imagen1', 'Imagen2']);
+if (manager.getProducts().length === 0) {
+    for (let i = 0; i < 10; i++) {
+        manager.addProduct(`Producto ${i+1}`, 'Descripción del producto', 100, 'Sin imagen', `abc${i+1}${Math.random().toString(36).substring(2, 15)}`, 10, 'Categoría', ['Imagen1', 'Imagen2']);
+    }
 }
 
 console.log(manager.getProducts());

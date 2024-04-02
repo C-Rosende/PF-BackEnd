@@ -11,17 +11,6 @@ app.use(express.json());
 const productManager = new ProductManager();
 const cartManager = new CartManager();
 
-productManager.addProduct('Big Mac', 'Una deliciosa hamburguesa con dos piezas de carne de res 100% pura, salsa especial Big Mac, lechuga, queso, pepinillos y cebolla en un pan con semillas de sésamo.', 3.99, 'big-mac.jpg', 'big-mac', 100, 'Hamburguesas');
-productManager.addProduct('McNuggets', '10 piezas de pollo crujiente, dorado a la perfección y servido con tu salsa favorita.', 4.49, 'mcnuggets.jpg', 'mcnuggets', 100, 'Pollo');
-productManager.addProduct('Papas Fritas', 'Papas cortadas finamente, fritas hasta obtener un dorado perfecto y sazonadas con sal.', 1.79, 'fries.jpg', 'fries', 100, 'Acompañamientos');
-productManager.addProduct('Coca-Cola', 'Refresco clásico, burbujeante y refrescante, perfecto para acompañar cualquier comida.', 1.59, 'coke.jpg', 'coke', 100, 'Bebidas');
-productManager.addProduct('Combo Big Mac', 'Incluye una hamburguesa Big Mac, papas fritas medianas y una bebida mediana.', 5.99, 'big-mac-combo.jpg', 'big-mac-combo', 100, 'Combos');
-productManager.addProduct('Sundae de Chocolate', 'Suave helado de vainilla cubierto con una deliciosa salsa de chocolate.', 1.29, 'chocolate-sundae.jpg', 'chocolate-sundae', 100, 'Postres');
-productManager.addProduct('Filete-O-Fish', 'Un filete de pescado empanizado y frito, servido con salsa tártara y una rodaja de queso en un pan suave.', 3.79, 'filet-o-fish.jpg', 'filet-o-fish', 100, 'Hamburguesas');
-productManager.addProduct('Ensalada César con Pollo', 'Lechuga fresca, trozos de pollo a la parrilla, queso parmesano rallado y crutones, servidos con aderezo César.', 4.99, 'chicken-caesar-salad.jpg', 'chicken-caesar-salad', 100, 'Ensaladas');
-productManager.addProduct('McFlurry Oreo', 'Helado de vainilla mezclado con trozos de galleta Oreo, una deliciosa combinación de cremoso y crujiente.', 2.39, 'oreo-mcflurry.jpg', 'oreo-mcflurry', 100, 'Postres');
-productManager.addProduct('Café Iced Frappé', 'Café helado mezclado con leche y hielo, cubierto con crema batida y salsa de caramelo.', 2.99, 'iced-frappe.jpg', 'iced-frappe', 100, 'Bebidas');
-
 app.get('/', (req, res) => {
     res.send(`
         <h1>¡Bienvenido a mi página!</h1>
@@ -75,7 +64,6 @@ app.delete('/api/products/:pid', (req, res) => {
     }
 });
 
-// Rutas de carritos
 app.post('/api/carts', (req, res) => {
     cartManager.addCart();
     res.status(201).json({ message: 'Carrito creado exitosamente' });

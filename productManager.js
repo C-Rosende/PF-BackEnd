@@ -1,4 +1,4 @@
-//productManager.js
+// productManager.js
 const fs = require('fs');
 
 class ProductManager {
@@ -23,8 +23,9 @@ class ProductManager {
             return;
         }
 
-        if (this.products.some(product => product.code === code)) {
-            console.error('El código del producto debe ser único');
+        const existingProduct = this.products.find(product => product.title === title);
+        if (existingProduct) {
+            console.error('El producto ya existe');
             return;
         }
 
