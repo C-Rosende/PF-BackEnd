@@ -17,9 +17,9 @@ class ProductManager {
         fs.writeFileSync('products.json', JSON.stringify(this.products));
     }
 
-    addProduct(title, description, price, thumbnail, code, stock) {
-        if (!title || !description || !price || !thumbnail || !code || !stock) {
-            console.error('Todos los campos son obligatorios');
+    addProduct(title, description, price, thumbnail, code, stock, category, thumbnails = []) {
+        if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
+            console.error('Todos los campos son obligatorios, excepto thumbnails');
             return;
         }
 
@@ -35,7 +35,10 @@ class ProductManager {
             price,
             thumbnail,
             code,
-            stock
+            stock,
+            status: true,
+            category,
+            thumbnails
         });
 
         this.saveProducts();

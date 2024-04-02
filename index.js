@@ -2,9 +2,11 @@
 const ProductManager = require('./productManager');
 
 const manager = new ProductManager();
-console.log(manager.getProducts());
 
-manager.addProduct('Big Mac', 'Dos Hamburguesas de carne 100% vacuno , Salsa Bigmac y queso derretido, un toque de cebolla, Lechuga y pepinillos.', 4290, './images/bigmac', 'Hamburguesa', 10);
+for (let i = 0; i < 10; i++) {
+    manager.addProduct(`Producto ${i+1}`, 'Descripción del producto', 100, 'Sin imagen', `abc${i+1}${Math.random().toString(36).substring(2, 15)}`, 10, 'Categoría', ['Imagen1', 'Imagen2']);
+}
+
 console.log(manager.getProducts());
 
 const product = manager.getProductById(1);
