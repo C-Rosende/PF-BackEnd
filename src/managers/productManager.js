@@ -1,22 +1,29 @@
 // productManager.js
 const fs = require('fs');
+const path = require('path');
 
+// Clase para manejar las operaciones de los productos
 class ProductManager {
     constructor() {
         this.products = [];
         this.id = 0;
-        if (fs.existsSync('products.json')) {
-            const data = fs.readFileSync('products.json', 'utf-8');
+        this.dataPath = path.join(__dirname, '..', '..', 'data', 'products.json');
+        
+        // Carga los productos desde el archivo si existe
+        if (fs.existsSync(this.dataPath)) {
+            const data = fs.readFileSync(this.dataPath, 'utf-8');
             const products = JSON.parse(data);
             this.products = products;
-            this.id = this.products.length;
+            this.id = Math.max(...this.products.map(product => product.id), 0);
         }
     }
 
+    // Guarda los productos en el archivo
     saveProducts() {
-        fs.writeFileSync('products.json', JSON.stringify(this.products));
+        fs.writeFileSync(this.dataPath, JSON.stringify(this.products));
     }
 
+    // Agrega un nuevo producto a la lista de productos
     addProduct(title, description, price, thumbnail, code, stock, category, thumbnails = []) {
         if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
             console.error('Todos los campos son obligatorios, excepto thumbnails');
@@ -45,10 +52,12 @@ class ProductManager {
         this.saveProducts();
     }
 
+    // Devuelve la lista de productos
     getProducts() {
-        return this.products;
+        return JSON.parse(fs.readFileSync(this.dataPath, 'utf-8'));
     }
 
+    // Devuelve el producto con el id proporcionado
     getProductById(id) {
         const product = this.products.find(product => product.id === id);
 
@@ -59,6 +68,7 @@ class ProductManager {
         return product;
     }
 
+    // Actualiza el producto con el id proporcionado con los nuevos datos proporcionados
     updateProduct(id, newProductData) {
         const product = this.products.find(product => product.id === id);
 
@@ -73,6 +83,7 @@ class ProductManager {
         this.saveProducts();
     }
 
+    // Elimina el producto con el id proporcionado
     deleteProduct(id) {
         const productIndex = this.products.findIndex(product => product.id === id);
 

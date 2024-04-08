@@ -1,22 +1,30 @@
 //cartManager.js
 const fs = require('fs');
+const path = require('path');
+const ProductManager = require('./productManager');
 
+// Clase para manejar las operaciones de los carritos
 class CartManager {
     constructor() {
         this.carts = [];
         this.id = 0;
-        if (fs.existsSync('carts.json')) {
-            const data = fs.readFileSync('carts.json', 'utf-8');
+        this.dataPath = path.join(__dirname, '..', 'data', 'carts.json');
+        
+        // Carga los carritos desde el archivo si existe
+        if (fs.existsSync(this.dataPath)) {
+            const data = fs.readFileSync(this.dataPath, 'utf-8');
             const carts = JSON.parse(data);
             this.carts = carts;
-            this.id = this.carts.length;
+            this.id = Math.max(...this.carts.map(cart => cart.id), 0);
         }
     }
 
+    // Guarda los carritos en el archivo
     saveCarts() {
-        fs.writeFileSync('carts.json', JSON.stringify(this.carts));
+        fs.writeFileSync(this.dataPath, JSON.stringify(this.carts));
     }
 
+    // Agrega un nuevo carrito a la lista de carritos
     addCart() {
         this.carts.push({
             id: ++this.id,
@@ -26,10 +34,12 @@ class CartManager {
         this.saveCarts();
     }
 
+    // Devuelve la lista de carritos
     getCarts() {
-        return this.carts;
+        return JSON.parse(fs.readFileSync(this.dataPath, 'utf-8'));
     }
 
+    // Devuelve el carrito con el id proporcionado
     getCartById(id) {
         const cart = this.carts.find(cart => cart.id === id);
 
@@ -40,8 +50,15 @@ class CartManager {
         return cart;
     }
 
+    // Agrega el producto con el id proporcionado al carrito con el id proporcionado
     addProductToCart(cartId, productId, quantity = 1) {
         const cart = this.getCartById(cartId);
+        const productManager = new ProductManager();
+        const product = productManager.getProductById(productId);
+
+        if (!product) {
+            throw new Error('Producto no encontrado');
+        }
 
         const productIndex = cart.products.findIndex(product => product.id === productId);
 
@@ -54,6 +71,7 @@ class CartManager {
         this.saveCarts();
     }
 
+    // Devuelve la lista de productos en el carrito con el id proporcionado
     getProductsFromCart(cartId) {
         const cart = this.getCartById(cartId);
         return cart.products;
