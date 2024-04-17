@@ -1,7 +1,11 @@
 // index.js
+const http = require('http');
+const socketIo = require('socket.io');
 const ProductManager = require('./src/managers/productManager');
 
-const manager = new ProductManager();
+const server = http.createServer();
+const io = socketIo(server);
+const manager = new ProductManager(io);
 
 // Si no hay productos, agrega algunos productos de prueba
 if (manager.getProducts().length === 0) {
@@ -21,3 +25,7 @@ console.log(manager.getProductById(1));
 
 manager.deleteProduct(1);
 console.log(manager.getProducts());
+
+server.listen(3000, () => {
+    console.log('Server is running on port 3000');
+});

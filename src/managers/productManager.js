@@ -4,9 +4,10 @@ const path = require('path');
 
 // Clase para manejar las operaciones de los productos
 class ProductManager {
-    constructor() {
+    constructor(io) {
         this.products = [];
         this.id = 0;
+        this.io = io;
         this.dataPath = path.join(__dirname, '..', '..', 'data', 'products.json');
         
         // Carga los productos desde el archivo si existe
@@ -50,6 +51,7 @@ class ProductManager {
         });
 
         this.saveProducts();
+        this.io.emit('productAdded', { id: this.id, title, description, price, thumbnail, code, stock, category, thumbnails });
     }
 
     // Devuelve la lista de productos
@@ -94,6 +96,7 @@ class ProductManager {
         this.products.splice(productIndex, 1);
 
         this.saveProducts();
+        this.io.emit('productDeleted', { id });
     }
 }
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Productos en tiempo real</title>
+    <link rel="stylesheet" type="text/css" href="/styles.css">
+    <script src="/socket.io/socket.io.js"></script> <!-- Importa la biblioteca de Socket.IO -->
+</head>
+<body>
+    <h1>Productos en tiempo real</h1>
+    <!-- Lista de productos. Cada producto tiene un botón para eliminarlo -->
+    <ul id="product-list">
+        {{#each products}}
+            <li id="product-{{this.id}}">
+                {{this.title}} - {{this.description}} - ${{this.price}}
+                <button onclick="deleteProduct({{this.id}})">Eliminar</button>
+            </li>
+        {{/each}}
+    </ul>
+
+    <!-- Formulario para crear nuevos productos -->
+    <form id="product-form">
+        <input type="text" id="title" placeholder="Título">
+        <input type="text" id="description" placeholder="Descripción">
+        <input type="number" id="price" placeholder="Precio">
+        <button type="submit">Crear producto</button>
+    </form>
+
+    <script>
+        // Inicializa la conexión de Socket.IO
+        const socket = io();
+
+        // Función para emitir un evento de Socket.IO para eliminar un producto
+        function deleteProduct(productId) {
+            socket.emit('deleteProduct', productId);
+        }
+
+        // Escucha los eventos de Socket.IO para agregar y eliminar productos
+        socket.on('productAdded', (product) => {
+            const productList = document.getElementById('product-list');
+            const productItem = document.createElement('li');
+            productItem.id = `product-${product.id}`;
+            productItem.textContent = `${product.title} - ${product.description} - $${product.price}`;
+            productList.appendChild(productItem);
+        });
+
+        socket.on('productDeleted', (productId) => {
+            const productList = document.getElementById('product-list');
+            const productItem = document.getElementById(`product-${productId}`);
+            productList.removeChild(productItem);
+        });
+
+        // Maneja el envío del formulario para crear nuevos productos
+        const form = document.getElementById('product-form');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const price = document.getElementById('price').value;
+            socket.emit('createProduct', { title, description, price });
+        });
+    </script>
+</body>
+</html>
