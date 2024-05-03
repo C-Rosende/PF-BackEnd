@@ -4,9 +4,10 @@ const handlebars  = require('express-handlebars');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
+const mongoose = require('mongoose');
 const CartRouter = require('./routers/cartRouter');
 const ProductRouter = require('./routers/productRouter');
-const ProductManager = require('./managers/productManager');
+const ProductManagerDB = require('./dao/productmanagerDB');
 
 // Configura la aplicación Express y el servidor HTTP y Socket.IO
 const app = express();
@@ -22,11 +23,16 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Configura el middleware de la aplicación
 app.use(express.json());
-app.use(express.static('public')); // Para servir archivos estáticos
+app.use(express.static('public'));
+
+// Conexión a la base de datos MongoDB en Atlas
+mongoose.connect('mongodb+srv://crosendej:<password>@cluster0.ypqdncz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Conectado a MongoDB Atlas'))
+    .catch(err => console.error('Error al conectar a MongoDB Atlas:', err));
 
 // Define las rutas de la aplicación
 app.get('/', (req, res) => {
-    const productManager = new ProductManager();
+    const productManager = new ProductManagerDB();
     const products = productManager.getProducts();
     res.render('index', { products: products });
 });
