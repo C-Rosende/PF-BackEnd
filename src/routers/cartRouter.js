@@ -1,6 +1,6 @@
 // cartRouter.js
 const express = require('express');
-const CartManager = require('../managers/cartManager');
+const CartManager = require('../dao/cartManagerDB');
 
 class CartRouter extends express.Router {
     constructor(io) {

@@ -1,11 +1,11 @@
 // productRouter.js
 const express = require('express');
-const ProductManager = require('../managers/productManager');
+const ProductManagerDB = require('../dao/productmanagerDB');
 
 class ProductRouter extends express.Router {
     constructor(io) {
         super();
-        const productManager = new ProductManager(io);
+        const productManager = new ProductManagerDB(io);
 
         this.get('/', (req, res) => {
             const limit = req.query.limit;
