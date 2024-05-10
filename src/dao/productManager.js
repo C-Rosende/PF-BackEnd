@@ -26,17 +26,20 @@ class ProductManager {
 
     // Agrega un nuevo producto a la lista de productos
     addProduct(title, description, price, thumbnail, code, stock, category, thumbnails = []) {
+        // Verifica que todos los campos obligatorios estén presentes
         if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
             console.error('Todos los campos son obligatorios, excepto thumbnails');
             return;
         }
 
+        // Verifica si el producto ya existe
         const existingProduct = this.products.find(product => product.title === title);
         if (existingProduct) {
             console.error('El producto ya existe');
             return;
         }
 
+        // Agrega el nuevo producto a la lista de productos
         this.products.push({
             id: ++this.id,
             title,
@@ -50,7 +53,9 @@ class ProductManager {
             thumbnails
         });
 
+        // Guarda los productos en el archivo
         this.saveProducts();
+        // Emite un evento de 'productAdded' con los detalles del producto
         this.io.emit('productAdded', { id: this.id, title, description, price, thumbnail, code, stock, category, thumbnails });
     }
 
@@ -78,10 +83,13 @@ class ProductManager {
             throw new Error('Producto no encontrado');
         }
 
+        // Elimina el id de los nuevos datos del producto
         delete newProductData.id;
 
+        // Combina los nuevos datos del producto con los existentes
         Object.assign(product, newProductData);
 
+        // Guarda los productos en el archivo
         this.saveProducts();
     }
 
@@ -93,9 +101,12 @@ class ProductManager {
             throw new Error('Producto no encontrado');
         }
 
+        // Elimina el producto de la lista de productos
         this.products.splice(productIndex, 1);
 
+        // Guarda los productos en el archivo
         this.saveProducts();
+        // Emite un evento de 'productDeleted' con el id del producto
         this.io.emit('productDeleted', { id });
     }
 }
