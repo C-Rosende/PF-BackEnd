@@ -6,6 +6,9 @@
 </head>
 <body>
     <h1>Productos</h1>
+    {{#if user}}
+        <h2>Bienvenido, {{user.email}}</h2>
+    {{/if}}
     <ul id="product-list">
         {{#each products}}
             <li>{{this.title}} - {{this.description}} - ${{this.price}}</li>

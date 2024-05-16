@@ -3,10 +3,13 @@
 <head>
     <title>Productos en tiempo real</title>
     <link rel="stylesheet" type="text/css" href="/styles.css">
-    <script src="/socket.io/socket.io.js"></script> <!-- Importa la biblioteca de Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
     <h1>Productos en tiempo real</h1>
+    {{#if user}}
+        <h2>Bienvenido, {{user.email}}</h2>
+    {{/if}}
     <!-- Lista de productos. Cada producto tiene un botón para eliminarlo -->
     <ul id="product-list">
         {{#each products}}

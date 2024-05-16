@@ -1,4 +1,4 @@
-// productRouter.js
+//productRouter.js
 const express = require('express');
 const ProductManagerDB = require('../dao/productManagerDB');
 
@@ -8,6 +8,15 @@ class ProductRouter extends express.Router {
         super();
         // Creación de una nueva instancia de ProductManagerDB
         const productManager = new ProductManagerDB(io);
+
+        // Verificación de roles
+        function isAdmin(req, res, next) {
+            if (req.user && req.user.role === 'admin') {
+                next();
+            } else {
+                res.status(403).json({ error: 'Acceso denegado' });
+            }
+        }
 
         // Endpoint para obtener todos los productos
         this.get('/', async (req, res) => {
@@ -47,14 +56,14 @@ class ProductRouter extends express.Router {
         });
 
         // Endpoint para agregar un nuevo producto
-        this.post('/', async (req, res) => {
+        this.post('/', isAdmin, async (req, res) => {
             const { title, description, price, thumbnail, code, stock, category, thumbnails } = req.body;
             await productManager.addProduct(title, description, price, thumbnail, code, stock, category, thumbnails);
             res.status(201).json({ message: 'Producto agregado exitosamente' });
         });
 
         // Endpoint para actualizar un producto existente
-        this.put('/:pid', async (req, res) => {
+        this.put('/:pid', isAdmin, async (req, res) => {
             const id = Number(req.params.pid);
             const newProductData = req.body;
             try {
@@ -66,7 +75,7 @@ class ProductRouter extends express.Router {
         });
 
         // Endpoint para eliminar un producto existente
-        this.delete('/:pid', async (req, res) => {
+        this.delete('/:pid', isAdmin, async (req, res) => {
             const id = Number(req.params.pid);
             try {
                 await productManager.deleteProduct(id);
