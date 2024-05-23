@@ -1,31 +1,46 @@
-// index.js
+//index.js
+const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const ProductManager = require('./src/managers/productManager');
-
-const server = http.createServer();
+const bodyParser = require('body-parser');
+const session = require('express-session');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcrypt');
+const app = express();
+const server = http.createServer(app);
 const io = socketIo(server);
-const manager = new ProductManager(io);
+const port = process.env.PORT || 3000;
 
-// Si no hay productos, agrega algunos productos de prueba
-if (manager.getProducts().length === 0) {
-    for (let i = 0; i < 10; i++) {
-        manager.addProduct(`Producto ${i+1}`, 'Descripción del producto', 100, 'Sin imagen', `abc${i+1}${Math.random().toString(36).substring(2, 15)}`, 10, 'Categoría', ['Imagen1', 'Imagen2']);
-    }
-}
+// Configuración de Express
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({ secret: 'my-secret', resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Prueba las funciones del ProductManager
-console.log(manager.getProducts());
+// Mock de datos de usuario
+const users = [
+    { id: 1, username: 'admin', password: 'admin' }
+];
 
-const product = manager.getProductById(1);
-console.log(product);
+// Configuración de Passport
+passport.use(new LocalStrategy((username, password, done) => {
+    const user = users.find(u => u.username === username);
+    if (!user) return done(null, false, { message: 'Nombre de usuario incorrecto.' });
+    bcrypt.compare(password, user.password, (err, result) => {
+        if (err) return done(err);
+        if (!result) return done(null, false, { message: 'Contraseña incorrecta.' });
+        return done(null, user);
+    });
+}));
 
-manager.updateProduct(1, { price: 300 });
-console.log(manager.getProductById(1));
+// Serialización y deserialización de usuarios
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+    User.findById(id, (err, user) => done(err, user));
+});
 
-manager.deleteProduct(1);
-console.log(manager.getProducts());
-
-server.listen(3000, () => {
-    console.log('Server is running on port 3000');
+// Iniciar el servidor
+server.listen(port, () => {
+    console.log(`Servidor corriendo en http://localhost:${port}`);
 });

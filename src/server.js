@@ -1,48 +1,42 @@
-//server.js
+// server.js
 const express = require('express');
-const handlebars  = require('express-handlebars');
+const handlebars = require('express-handlebars');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const mongoose = require('mongoose');
-const CartRouter = require('./routers/cartRouter');
-const ProductRouter = require('./routers/productRouter');
-const ProductManagerDB = require('./dao/productManagerDB');
-const ViewsRouter = require('./routers/viewsRouter');
-const session = require('express-session'); // Nueva importación
-const passport = require('passport'); // Nueva importación
-const LocalStrategy = require('passport-local').Strategy; // Nueva importación
-const bcrypt = require('bcrypt'); // Nueva importación
-const User = require('./dao/models/user'); // Ruta actualizada
+const session = require('express-session');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcrypt');
+const User = require('./dao/models/user');
+const sessionRouter = require('./routers/sessionRouter');
 
-// Configuración de la aplicación Express y el servidor HTTP y Socket.IO
+// Creación de la aplicación Express y el servidor HTTP
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
-const port = 8080;
+const port = process.env.PORT || 8080;
 
-// Configuración de Handlebars como el motor de plantillas de la aplicación
+// Configuración de Handlebars
 const hbs = handlebars.create({ defaultLayout: false });
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
-// Configuración del middleware de la aplicación
+// Configuración del middleware
 app.use(express.json());
-app.use(express.static('public'));
-
-// Configuración de la sesión
+app.use(express.static(path.join(__dirname)));
+app.use('/styles.css', express.static(path.join(__dirname, 'styles.css')));
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: false,
 }));
-
-// Inicialización de Passport y sesión de Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Configuración de Passport
+// Configuración de Passport para la autenticación local
 passport.use(new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password'
@@ -66,22 +60,44 @@ passport.deserializeUser((id, done) => {
     User.findById(id, (err, user) => done(err, user));
 });
 
-// Conexión a la base de datos MongoDB en Atlas
-mongoose.connect('mongodb+srv://crosendej:crosendej@cluster0.ypqdncz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
-    .then(() => console.log('Conectado a MongoDB Atlas'))
+// Conexión a MongoDB Atlas
+mongoose.connect('mongodb+srv://crosendej:crosendej@cluster0.ypqdncz.mongodb.net/?retryWrites=true&w=majority')
+    .then(() => {
+        console.log('Conectado a MongoDB Atlas');
+
+        // Crear el usuario administrador por defecto si no existe
+        User.findOne({ email: 'adminCoder@coder.com' }).then(async (user) => {
+            if (!user) {
+                const hashedPassword = await bcrypt.hash('CoderCoder', 10);
+                const adminUser = new User({
+                    email: 'adminCoder@coder.com',
+                    password: hashedPassword,
+                    role: 'admin'
+                });
+                await adminUser.save();
+                console.log('Usuario administrador creado');
+            }
+        }).catch(err => console.error('Error al buscar el usuario administrador:', err));
+    })
     .catch(err => console.error('Error al conectar a MongoDB Atlas:', err));
 
-// Define las rutas de la aplicación
+// Configuración de las rutas
 app.get('/', (req, res) => {
-    const productManager = new ProductManagerDB();
-    const products = productManager.getProducts();
-    res.render('index', { products: products });
+    res.redirect('/login');
 });
+
+// Importar las clases de enrutadores
+const ProductRouter = require('./routers/productRouter');
+const CartRouter = require('./routers/cartRouter');
+const ViewsRouter = require('./routers/viewsRouter');
+
+// Uso de los enrutadores
 app.use('/api/products', new ProductRouter(io));
 app.use('/api/carts', new CartRouter(io));
 app.use('/', new ViewsRouter());
+app.use('/session', sessionRouter);
 
-// Inicia el servidor
+// Iniciar el servidor
 server.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
 });

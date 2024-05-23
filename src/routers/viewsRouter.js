@@ -1,9 +1,10 @@
-//viewsRouter.js
+// viewsRouter.js
 const express = require('express');
-const ProductManagerDB = require('../dao/productManagerDB');
-const CartManagerDB = require('../dao/cartManagerDB');
+const passport = require('passport');
 const bcrypt = require('bcrypt');
 const User = require('../dao/models/user');
+const ProductManagerDB = require('../dao/productManagerDB');
+const CartManagerDB = require('../dao/cartManagerDB');
 
 // Clase para manejar las rutas de las vistas
 class ViewsRouter extends express.Router {
@@ -24,7 +25,7 @@ class ViewsRouter extends express.Router {
                 products = products.slice((page - 1) * pageSize, page * pageSize);
             }
 
-            // Renderizar la vista de productos con la lista de productos
+            // Renderizar la vista de productos con la lista de productos y el menú de inicio de sesión
             res.render('products', { products, user: req.user });
         });
 
@@ -55,23 +56,29 @@ class ViewsRouter extends express.Router {
             res.redirect('/login');
         });
 
-        // Ruta para el inicio de sesión
-        this.post('/login', async (req, res, next) => {
-            const { email, password } = req.body;
-            if (email === 'adminCoder@coder.com' && password === 'CoderCoder') {
-                // Iniciar sesión como administrador
-                const user = { email, role: 'admin' };
-                req.login(user, (err) => {
+        // Ruta para procesar el inicio de sesión
+        this.post('/login', (req, res, next) => {
+            passport.authenticate('local', (err, user, info) => {
+                if (err) return next(err);
+                if (!user) return res.redirect('/login');
+                req.logIn(user, (err) => {
                     if (err) return next(err);
+                    if (user.email === 'adminCoder@coder.com') {
+                        return res.redirect('/products');
+                    }
                     return res.redirect('/products');
                 });
-            } else {
-                // Iniciar sesión como usuario
-                passport.authenticate('local', {
-                    successRedirect: '/products',
-                    failureRedirect: '/login',
-                })(req, res, next);
-            }
+            })(req, res, next);
+        });
+
+        // Ruta para mostrar el formulario de inicio de sesión
+        this.get('/login', (req, res) => {
+            res.render('login');
+        });
+
+        // Ruta para mostrar el formulario de registro
+        this.get('/register', (req, res) => {
+            res.render('register');
         });
     }
 }
