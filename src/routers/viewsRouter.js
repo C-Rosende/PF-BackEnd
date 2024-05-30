@@ -1,4 +1,3 @@
-// viewsRouter.js
 const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcrypt');
@@ -6,26 +5,37 @@ const User = require('../dao/models/user');
 const ProductManagerDB = require('../dao/productManagerDB');
 const CartManagerDB = require('../dao/cartManagerDB');
 
-// Clase para manejar las rutas de las vistas
 class ViewsRouter extends express.Router {
     constructor() {
         super();
-        // Creación de nuevas instancias de ProductManagerDB y CartManagerDB
         const productManager = new ProductManagerDB();
         const cartManager = new CartManagerDB();
+
+        // Ruta para mostrar el formulario de inicio de sesión
+        this.get('/login', (req, res) => {
+            res.render('login');
+        });
+
+        // Ruta para mostrar el formulario de registro
+        this.get('/register', (req, res) => {
+            res.render('register');
+        });
+
+        // Ruta para mostrar la página principal (home)
+        this.get('/home', (req, res) => {
+            res.render('home', { user: req.user });
+        });
 
         // Endpoint para obtener todos los productos y renderizar la vista de productos
         this.get('/products', async (req, res) => {
             const { page } = req.query;
             let products = await productManager.getProducts();
 
-            // Paginar productos si se proporciona un parámetro de página
             if (page) {
                 const pageSize = 10;
                 products = products.slice((page - 1) * pageSize, page * pageSize);
             }
 
-            // Renderizar la vista de productos con la lista de productos y el menú de inicio de sesión
             res.render('products', { products, user: req.user });
         });
 
@@ -34,13 +44,10 @@ class ViewsRouter extends express.Router {
             const cartId = req.params.cid;
             try {
                 const cart = await cartManager.getCartById(cartId);
-                // Obtener los datos de los productos en el carrito
                 const products = await Promise.all(cart.products.map(async product => {
                     const productData = await productManager.getProductById(product.id);
-                    // Devolver los datos del producto junto con la cantidad en el carrito
                     return { ...productData._doc, quantity: product.quantity };
                 }));
-                // Renderizar la vista del carrito con la lista de productos
                 res.render('cart', { products });
             } catch (error) {
                 res.status(404).json({ error: 'Carrito no encontrado' });
@@ -66,19 +73,9 @@ class ViewsRouter extends express.Router {
                     if (user.email === 'adminCoder@coder.com') {
                         return res.redirect('/products');
                     }
-                    return res.redirect('/products');
+                    return res.redirect('/home');
                 });
             })(req, res, next);
-        });
-
-        // Ruta para mostrar el formulario de inicio de sesión
-        this.get('/login', (req, res) => {
-            res.render('login');
-        });
-
-        // Ruta para mostrar el formulario de registro
-        this.get('/register', (req, res) => {
-            res.render('register');
         });
     }
 }

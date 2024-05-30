@@ -27,7 +27,7 @@ app.set('views', path.join(__dirname, 'views'));
 // Configuración del middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
-app.use('/styles.css', express.static(path.join(__dirname, 'styles.css')));
+app.use('./styles.css', express.static(path.join(__dirname, 'styles.css')));
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
