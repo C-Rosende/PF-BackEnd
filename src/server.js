@@ -1,4 +1,5 @@
 // server.js
+require('dotenv').config();
 const express = require('express');
 const handlebars = require('express-handlebars');
 const http = require('http');
@@ -6,11 +7,10 @@ const socketIo = require('socket.io');
 const path = require('path');
 const mongoose = require('mongoose');
 const session = require('express-session');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const bcrypt = require('bcrypt');
-const User = require('./dao/models/user');
+const passport = require('./passportConfig');
 const sessionRouter = require('./routers/sessionRouter');
+const cookieParser = require('cookie-parser');
+const User = require('./dao/models/user');
 
 // Creación de la aplicación Express y el servidor HTTP
 const app = express();
@@ -26,42 +26,23 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Configuración del middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname)));
+app.use(cookieParser());
 app.use('./styles.css', express.static(path.join(__dirname, 'styles.css')));
 app.use(session({
-    secret: 'your-secret-key',
+    secret: process.env.SESSION_SECRET || 'your-session-secret',
     resave: false,
     saveUninitialized: false,
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Configuración de Passport para la autenticación local
-passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password'
-}, async (email, password, done) => {
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return done(null, false, { message: 'Usuario no encontrado' });
-        }
-        if (await bcrypt.compare(password, user.password)) {
-            return done(null, user);
-        } else {
-            return done(null, false, { message: 'Contraseña incorrecta' });
-        }
-    } catch (error) {
-        return done(error);
-    }
-}));
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => done(err, user));
-});
-
 // Conexión a MongoDB Atlas
-mongoose.connect('mongodb+srv://crosendej:crosendej@cluster0.ypqdncz.mongodb.net/?retryWrites=true&w=majority')
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
     .then(() => {
         console.log('Conectado a MongoDB Atlas');
 
@@ -94,8 +75,14 @@ const ViewsRouter = require('./routers/viewsRouter');
 // Uso de los enrutadores
 app.use('/api/products', new ProductRouter(io));
 app.use('/api/carts', new CartRouter(io));
-app.use('/', new ViewsRouter());
-app.use('/session', sessionRouter);
+app.use('/api/views', new ViewsRouter());
+app.use('/api/sessions', sessionRouter);
+
+// Middleware de manejo de errores
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Algo salió mal!');
+});
 
 // Iniciar el servidor
 server.listen(port, () => {
