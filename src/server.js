@@ -1,5 +1,4 @@
 // server.js
-require('dotenv').config();
 const express = require('express');
 const handlebars = require('express-handlebars');
 const http = require('http');
@@ -7,10 +6,12 @@ const socketIo = require('socket.io');
 const path = require('path');
 const mongoose = require('mongoose');
 const session = require('express-session');
-const passport = require('./passportConfig');
+const passport = require('passport');
+const { mongoUri, sessionSecret } = require('../config/config');
 const sessionRouter = require('./routers/sessionRouter');
-const cookieParser = require('cookie-parser');
-const User = require('./dao/models/user');
+const configurePassport = require('./passportConfig');
+const User = require('./dao/models/user');  // Asegúrate de que este archivo exista
+const bcrypt = require('bcrypt');
 
 // Creación de la aplicación Express y el servidor HTTP
 const app = express();
@@ -26,23 +27,21 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Configuración del middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname)));
-app.use(cookieParser());
-app.use('./styles.css', express.static(path.join(__dirname, 'styles.css')));
+app.use('/styles.css', express.static(path.join(__dirname, 'styles.css')));
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-session-secret',
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Configurar Passport
+configurePassport(passport);
+
 // Conexión a MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+mongoose.connect(mongoUri)
     .then(() => {
         console.log('Conectado a MongoDB Atlas');
 
@@ -68,21 +67,15 @@ app.get('/', (req, res) => {
 });
 
 // Importar las clases de enrutadores
-const ProductRouter = require('./routers/productRouter');
-const CartRouter = require('./routers/cartRouter');
-const ViewsRouter = require('./routers/viewsRouter');
+const productRouter = require('./routers/productRouter');
+const cartRouter = require('./routers/cartRouter');
+const viewsRouter = require('./routers/viewsRouter');
 
 // Uso de los enrutadores
-app.use('/api/products', new ProductRouter(io));
-app.use('/api/carts', new CartRouter(io));
-app.use('/api/views', new ViewsRouter());
-app.use('/api/sessions', sessionRouter);
-
-// Middleware de manejo de errores
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Algo salió mal!');
-});
+app.use('/api/products', productRouter);
+app.use('/api/cart', cartRouter);
+app.use('/', viewsRouter);
+app.use('/session', sessionRouter);
 
 // Iniciar el servidor
 server.listen(port, () => {

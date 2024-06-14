@@ -16,12 +16,14 @@
     "express": "^4.19.2",
     "express-handlebars": "^7.1.2",
     "express-session": "^1.18.0",
-    "mongoose": "^8.3.3",
+    "http": "^0.0.1-security",
+    "mongoose": "^8.4.1",
     "passport": "^0.7.0",
     "passport-github": "^1.1.0",
     "passport-github2": "^0.1.12",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "path": "^0.12.7",
     "react-router": "^6.23.1",
     "socket.io": "^4.7.5"
   }
