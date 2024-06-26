@@ -1,4 +1,5 @@
 // server.js
+require('dotenv').config();
 const express = require('express');
 const handlebars = require('express-handlebars');
 const http = require('http');
@@ -10,8 +11,10 @@ const passport = require('passport');
 const { mongoUri, sessionSecret } = require('../config/config');
 const sessionRouter = require('./routers/sessionRouter');
 const configurePassport = require('./passportConfig');
-const User = require('./dao/models/user');  // Asegúrate de que este archivo exista
+const User = require('./dao/models/user');
 const bcrypt = require('bcrypt');
+const DAOFactory = require('./dao/daoFactory');
+const { checkRole } = require('./middlewares/authMiddleware');
 
 // Creación de la aplicación Express y el servidor HTTP
 const app = express();
@@ -72,8 +75,8 @@ const cartRouter = require('./routers/cartRouter');
 const viewsRouter = require('./routers/viewsRouter');
 
 // Uso de los enrutadores
-app.use('/api/products', productRouter);
-app.use('/api/cart', cartRouter);
+app.use('/api/products', checkRole(['admin']), productRouter);
+app.use('/api/cart', checkRole(['user']), cartRouter);
 app.use('/', viewsRouter);
 app.use('/session', sessionRouter);
 

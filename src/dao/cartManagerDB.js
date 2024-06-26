@@ -1,5 +1,5 @@
 //cartManagerDB.js
-const Cart = require('./models/Cart');
+const Cart = require('./models/cart');
 
 class CartManagerDB {
   // Obtiene todos los carritos de la base de datos
